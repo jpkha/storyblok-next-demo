@@ -5,13 +5,15 @@ import Grid from "../components/Grid";
 import Page from "../components/Page";
 import SbCard from "../components/SbCard";
 import Teaser from "../components/Teaser";
+import SbGrid from "../components/SbGrid";
 
 const components = {
   feature: Feature,
   grid: Grid,
   teaser: Teaser,
   page: Page,
-  sbCard: SbCard
+  sbCard: SbCard,
+  sbGrid: SbGrid
 };
 
 storyblokInit({
