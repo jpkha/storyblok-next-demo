@@ -2,10 +2,11 @@ import Head from "next/head";
 import styles from "../styles/Home.module.css";
 
 import {
-  useStoryblokState,
   getStoryblokApi,
   StoryblokComponent,
 } from "@storyblok/react";
+import {useEffect, useState} from "react";
+import {SbShoppingCartButton} from "../components/SbShoppingCartButton";
 
 export default function Home({ story }) {
   story = useStoryblokState(story);
@@ -19,6 +20,7 @@ export default function Home({ story }) {
 
       <header>
         <h1>{story ? story.name : "My Site"}</h1>
+        <SbShoppingCartButton/>
       </header>
 
       <StoryblokComponent blok={story.content} />
@@ -43,4 +45,38 @@ export async function getStaticProps() {
     },
     revalidate: 3600,
   };
+}
+
+const useStoryblokState = (initialStory = {}, bridgeOptions = {}) => {
+  let [story, setStory] = useState(initialStory);
+  useStoryblokBridge(story.id, (newStory) => setStory(newStory), bridgeOptions);
+  useEffect(() => {
+    setStory(initialStory);
+  }, [initialStory]);
+  return story;
+};
+
+
+const useStoryblokBridge = (id, cb, options = {}) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+  if (typeof window.storyblokRegisterEvent === "undefined") {
+    console.error("Storyblok Bridge is disabled. Please enable it to use it. Read https://github.com/storyblok/storyblok-js");
+    return;
+  }
+  if (!id) {
+    console.warn("Story ID is not defined. Please provide a valid ID.");
+    return;
+  }
+  window.storyblokRegisterEvent(() => {
+    const sbBridge = new window.StoryblokBridge(options);
+    sbBridge.on(["input", "published", "change"], (event) => {
+      if (event.action == "input" && event.story.id === id) {
+        cb(event.story);
+      } else {
+        window.location.reload();
+      }
+    });
+  })
 }
